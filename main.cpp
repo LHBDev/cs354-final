@@ -18,18 +18,14 @@
 Scene *scene;
 
 /* Default Viewport **************************************************************/
-static GLfloat vfov = 90.f;
+static GLfloat vfov = 55.f;
 static GLfloat vzoom = 1.f;
 static GLfloat veyex = 5.f;
 static GLfloat veyey = 5.f;
-static GLfloat veyez = -3.f;
+static GLfloat veyez = -5.5f;
 static GLfloat vupx = 0.f;
 static GLfloat vupy = 1.f;
 static GLfloat vupz = 0.f;
-
-static GLfloat vx = 0.f;                //vector of viewport direction
-static GLfloat vy = 0.f;                //calculated at init()
-static GLfloat vz = -1.f;
 
 static GLfloat vmovespeed = 0.05f;      //movement
 static GLfloat vmovexdelta = 0.f;
@@ -39,7 +35,11 @@ static GLfloat vanglex = 0.f;
 static GLfloat vanglexdelta = 0.f;
 static GLfloat vangley = 1.f;         //default angle to spin the view by
 static GLfloat vangleydelta = 0.f;
-static GLfloat vangledampener = 300.f;  //slowness of the turn, higher = slower
+static GLfloat vangledampener = 400.f;  //slowness of the turn, higher = slower
+
+static GLfloat vx = sin(vanglex);
+static GLfloat vy = -sin(vangley) + cos(vangley);
+static GLfloat vz = -cos(vanglex);
 
 static int window_x = 800;
 static int window_y = 600;
@@ -100,10 +100,10 @@ static void init() {
     vert d = scene->addVertex (4.5, 4.5, -5.0);
     vert e = scene->addVertex (5.0, 5.0, -4.5);
     vert f = scene->addVertex (5.0, 5.0, -5.5);
-    scene->createLine (a, b);
-    scene->createLine (b, c);
-    scene->createLine (c, d);
-    scene->createLine (d, a);
+    scene->createLine (a, b)->setColor (0.1f, 0.8f, 0.1f);
+    scene->createLine (b, c)->setColor (0.1f, 0.8f, 0.1f);
+    scene->createLine (c, d)->setColor (0.1f, 0.8f, 0.1f);
+    scene->createLine (d, a)->setColor (0.1f, 0.8f, 0.1f);
     scene->createLine (d, e);
     scene->createLine (a, e);
     scene->createLine (b, e);
@@ -124,15 +124,8 @@ static void init() {
     redraw_interval.tv_sec = 1 / FRAME_RATE;
 #endif
 
-    //vx = sin(vanglex);
-    //vz = -cos(vangley);
-    //vy = sin(vangley + vangleydelta) + cos(vangley + vangleydelta);
-
-    glClearColor(0.3, 0.3, 0.3, 0.0);
+    glClearColor(0.1, 0.1, 0.1, 0.0);
     glEnable(GL_DEPTH_TEST);
-
-    vmoveydelta = 0.0;
-    vmovexdelta = 0.0;
 }
 
 /* The idle function just advances time and updates the scene, forcing redraws on the
@@ -157,6 +150,7 @@ static void idle (void) {
         veyex += vmoveydelta * vx * 0.075f;
         veyez += vmoveydelta * vz * 0.075f;
         veyey += vmoveydelta * vy * 0.075f;
+
         veyex += vmovexdelta * vz * 0.05f;
         veyez += vmovexdelta * -vx * 0.05;
         updateView();
@@ -255,10 +249,10 @@ static void keyboard (unsigned char key, int x, int y) {
                 vertex->x += 0.05;
                 break;
             case 'i':
-                vertex->z -= 0.05;
+                vertex->y += 0.05;
                 break;
             case 'k':
-                vertex->z += 0.05;
+                vertex->y -= 0.05;
                 break;
         }
         default:
