@@ -18,44 +18,45 @@
 Scene *scene;
 
 /* Default Viewport **************************************************************/
-static GLfloat vfov = 70.f;
+static GLfloat vfov = 90.f;
 static GLfloat vzoom = 1.f;
-static GLfloat veyex = 0.f;
-static GLfloat veyey = 2.5f;
-static GLfloat veyez = 5.f;
-static GLfloat vcenterx = 0.f;
-static GLfloat vcentery = -0.5f;
-static GLfloat vcenterz = -0.5f;
-static GLfloat vupx = -0.f;
+static GLfloat veyex = 5.f;
+static GLfloat veyey = 5.f;
+static GLfloat veyez = -3.f;
+static GLfloat vupx = 0.f;
 static GLfloat vupy = 1.f;
 static GLfloat vupz = 0.f;
 
 static GLfloat vx = 0.f;                //vector of viewport direction
 static GLfloat vy = 0.f;                //calculated at init()
-static GLfloat vz = 0.f;
+static GLfloat vz = -1.f;
 
 static GLfloat vmovespeed = 0.05f;      //movement
 static GLfloat vmovexdelta = 0.f;
 static GLfloat vmoveydelta = 0.f;
 
-static GLfloat vanglex = 0.1f;
+static GLfloat vanglex = 0.f;
 static GLfloat vanglexdelta = 0.f;
-static GLfloat vangley = -10.f;         //default angle to spin the view by
+static GLfloat vangley = 1.f;         //default angle to spin the view by
 static GLfloat vangleydelta = 0.f;
 static GLfloat vangledampener = 300.f;  //slowness of the turn, higher = slower
+
+static int window_x = 800;
+static int window_y = 600;
 /* Mouse Vars ********************************************************************/
 static bool  bMouseDown = false;
 static float xsource = 0.f; 
 static float ysource = 0.f;
 /* Timing Info *******************************************************************/
 static double time = 0.0;
-static double qmult = 1.0;
 static bool   bInProgress = true;
 #ifdef _WIN32
+static double qmult = 1.0;
 static DWORD next_redraw;
 static DWORD redraw_interval;
 static DWORD last_idle_time;
 #else
+static double qmult = 1.5;
 static struct timeval next_redraw;
 static struct timeval redraw_interval;
 static struct timeval last_idle_time;
@@ -69,8 +70,8 @@ static void updateView(){
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     
-    gluPerspective(vzoom * vfov, (GLfloat)glutGet(GLUT_WINDOW_WIDTH) / (GLfloat)glutGet(GLUT_WINDOW_HEIGHT), 0.25, 30.0);
-    gluLookAt(veyex, veyey, veyez, veyex + vx, veyey + vy, veyez + vz, vupx, vupy, vupz);
+    gluPerspective(vzoom * vfov, 1.f, 0.25, 230.0);
+    gluLookAt(veyex, veyey, veyez, veyex + vx, veyey + vy, veyez + vz, vupx, vupy, vy);
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -78,6 +79,8 @@ static void updateView(){
 
 /* updates the viewport and the view (camera) */
 static void reshape (int width, int height) {
+    window_x = width;
+    window_y = height;
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
     updateView();
 }
@@ -91,20 +94,25 @@ static void init() {
        should parse them in from a file with a format that makes
        this process easier.  Then we can make scenes for each
        loaded file, and switch between them on the fly. */
-    vert a = scene->addVertex (0, 0, 0);
-    vert b = scene->addVertex (0.2, 0.2, 0.2);
-    vert c = scene->addVertex (-0.2, 0.2, 0.2);
-    vert d = scene->addVertex (0.2, -0.2, 0.2);
-    vert e = scene->addVertex (0.2, 0.2, -0.2);
-    vert f = scene->addVertex (-0.2, -0.2, -0.2);
+    vert a = scene->addVertex (4.5, 5.5, -5.0);
+    vert b = scene->addVertex (5.5, 5.5, -5.0);
+    vert c = scene->addVertex (5.5, 4.5, -5.0);
+    vert d = scene->addVertex (4.5, 4.5, -5.0);
+    vert e = scene->addVertex (5.0, 5.0, -4.5);
+    vert f = scene->addVertex (5.0, 5.0, -5.5);
     scene->createLine (a, b);
-    scene->createLine (a, c);
     scene->createLine (b, c);
-    scene->createLine (b, d);
+    scene->createLine (c, d);
+    scene->createLine (d, a);
+    scene->createLine (d, e);
+    scene->createLine (a, e);
     scene->createLine (b, e);
+    scene->createLine (c, e);
+    scene->createLine (d, e);
+    scene->createLine (a, f);
     scene->createLine (b, f);
-    scene->createLine (f, e);
-    scene->createLine (e, d);
+    scene->createLine (c, f);
+    scene->createLine (d, f);
     
     /* Multi-Platform Timings *******************************/
 
@@ -116,12 +124,12 @@ static void init() {
     redraw_interval.tv_sec = 1 / FRAME_RATE;
 #endif
 
+    //vx = sin(vanglex);
+    //vz = -cos(vangley);
+    //vy = sin(vangley + vangleydelta) + cos(vangley + vangleydelta);
+
     glClearColor(0.3, 0.3, 0.3, 0.0);
     glEnable(GL_DEPTH_TEST);
-
-    vx = sin(vanglex + vanglexdelta);
-    vz = -cos(vanglex + vanglexdelta);
-    vy = sin(vangley + vangleydelta) + cos(vangley + vangleydelta);
 
     vmoveydelta = 0.0;
     vmovexdelta = 0.0;
@@ -146,8 +154,6 @@ static void idle (void) {
 
     /* Update veye position */
     if(vmoveydelta || vmovexdelta){
-        float vmag = sqrt(exp(vx) + exp(vy) + exp(vz));
-
         veyex += vmoveydelta * vx * 0.075f;
         veyez += vmoveydelta * vz * 0.075f;
         veyey += vmoveydelta * vy * 0.075f;
@@ -213,7 +219,7 @@ static void motion (int x, int y) {
 
         vangleydelta = y-ysource;
         vangleydelta /= vangledampener;
-        vy = sin(vangley + vangleydelta) + cos(vangley + vangleydelta);
+        vy = -sin(vangley + vangleydelta) + cos(vangley + vangleydelta);
 
         updateView();
     }
@@ -312,7 +318,7 @@ static void display() {
 int main(int argc, char **argv) {
     glutInit(&argc,argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH ); // Initialize modes
-    glutInitWindowSize(800, 600);
+    glutInitWindowSize(window_x, window_y);
     glutInitWindowPosition(50, 50);
     glutCreateWindow("Final Project");
     init();
