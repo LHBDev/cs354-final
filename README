@@ -8,3 +8,12 @@ http://www.maa.org/external_archive/joma/Volume8/Kalman/MaxEllipse.html
 
 Didn't get around to finishing moving vertices. have clicking working but didn't push
 because cOde wasn'tworking since i triedto do moving.
+
+scene_manager.cpp has an empty loadFile function you should write.  i'll get all the
+math done tonight if i can.  running kind of low on time.
+
+once that's done, just focus on getting a right-click menu in there that we can select
+parsed files from.  as long as we can pop up a bunch of models and move verts and
+spin angles and shit we'll be fine.
+
+look back through scene_manager.h, GLM integration changed a lot of things.
