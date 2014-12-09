@@ -5,13 +5,13 @@
 
 class Line;
 class Line : public Element {
-private :
+public:
     Vertex &a, &b;
-public :
     Line (Vertex *a, Vertex *b) : Element (), a(*a), b(*b) { }
     ~Line () {}
 
     virtual void doDraw (void);
+    
 };
 
 

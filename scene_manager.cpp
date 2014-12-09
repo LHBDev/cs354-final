@@ -1,69 +1,57 @@
 #include "scene_manager.h"
 #include <algorithm>
+#include <fstream>
+#include <iostream>
 
 static void display_element (Element *e) { e->draw(); }
 
 /* Main display function */
 void Scene::display () {
-    std::for_each (elements->begin(), elements->end(), display_element);
+    std::for_each (elements.begin(), elements.end(), display_element);
 }
 
 /**********************************************************
  * Vertex Functions                                       *
  **********************************************************/
 
-static bool vertexIsValid (Scene *s, vert v) {
-    return (v < MAX_VERTS && s->getVertex (v) != NULL);
+/* Adds a new vertex to the scene, returns a pointer to that vertex */
+Vertex *Scene::addVertex3f (GLfloat x, GLfloat y, GLfloat z) {
+    Vertex *vertex = new Vertex(x,y,z,0.f);
+    
+    if (vertex) {
+      elements.push_back (vertex);
+      verts.push_back (vertex);
+      vertexes[vertex->id] = vertex;
+    }
+
+    return vertex;
 }
 
-/* Makes a new vertex entry for the specified coordinates,
-   returns the vertex's index in the vertex array (which is
-   the "Vertex ID" and can be treated like a pointer when
-   using the scene manager's *Vertex functions) 
-   returns -1 when the array is full */
-vert Scene::addVertex (GLfloat x, GLfloat y, GLfloat z) {
-    if (verts_size == MAX_VERTS)
-        return -1;
+Vertex *Scene::addVertex (glm::vec4 vector) {
+    return addVertex3f (vector.x, vector.y, vector.z);
+}
 
-    verts[verts_size].x = x;
-    verts[verts_size].y = y;
-    verts[verts_size].z = z;
-    verts[verts_size].vertex = new Vertex (&verts[verts_size]);
-    elements->push_back (verts[verts_size].vertex);
+/* Gets the Vertex object associated with vert v and returns a pointer to it,
+   returns NULL if the vert is invalid */
+list<Vertex*> &Scene::getVertexList () {
+    return verts;
+}
 
-    ++verts_size;
-
-    return verts_size - 1;
+/* Guesses at the best selection vertex based on the coordinates */
+Vertex *Scene::selectVertex (int x, int y) {
+  return verts.front();
 }
 
 /* Removes the vertex at the index specified, returning true if successful.
    Also destroys any dependent elements
    Returns false when there is no entry at this location */
-bool Scene::removeVertex (vert v) {
-    bool success = (getVertex (v) != NULL);
-    if (success) 
-        delete verts[v].vertex;
-    return success;
-}
-
-/* Gets the Vertex object associated with vert v and returns a pointer to it,
-   returns NULL if the vert is invalid */
-Vertex *Scene::getVertex (vert v) {
-    Vertex *vertex = NULL;
-    if (v < MAX_VERTS)
-        vertex = verts[v].vertex;
-    return vertex;
-}
-
-/* Moves the specified vertex to the specified coordinates */
-bool Scene::moveVertex (vert v, GLfloat x, GLfloat y, GLfloat z) {
-   bool success = (getVertex (v) != NULL);
-    if (success) {
-        verts[v].x = x;
-        verts[v].y = y;
-        verts[v].z = z;
+void Scene::removeVertex (Vertex *vertex) {
+    if (vertex) {
+        elements.remove (vertex);
+        verts.remove (vertex);
+        vertexes[vertex->id] = NULL;
+        delete vertex;
     }
-    return success;
 }
 
 /**********************************************************
@@ -75,54 +63,62 @@ bool Scene::moveVertex (vert v, GLfloat x, GLfloat y, GLfloat z) {
    drawing once created. */
 
 /* a simple line between two verts */
-Line *Scene::createLine (vert a, vert b) {
+Line *Scene::createLine (Vertex *a, Vertex *b) {
     Line *line = NULL;
-    Vertex *vertex_a = getVertex (a);
-    Vertex *vertex_b = getVertex (b);
-    if (vertex_a && vertex_b) {
-        line = new Line(vertex_a, vertex_b);
-        elements->push_back (line);
+    if (a && b) {
+        line = new Line(a, b);
+        elements.push_back (line);
     }
     return line;
 }
 
-/* an angle (number) is displayed for the lines defined by [source, a] and [source, b] *
-Angle *Scene::createAngle (vert source, vert a, vert b) {
+/* static helper for angle checks (must share one and only one vertex) */
+static enum LM validAngle (Line &a, Line &b) {
+  enum LM elm = LM_NONE;
+  if (&a && &b) {
+    if (a.a == b.a)
+      elm = LM_AA;
+      
+    if (a.b == b.b) {
+      if (elm)
+        return LM_NONE;
+      else
+        elm = LM_BB;
+    }        
+    
+    if (a.a == b.b) {
+      if (elm)
+        return LM_NONE;
+      else
+        elm = LM_AB;
+    }
+        
+    if (a.b == b.a) {
+      if (elm)
+        return LM_NONE;
+      else
+        elm = LM_BA;
+    }
+  }
+  return elm;
+}
+
+/* an angle (number) is displayed for the lines defined.  The lines must share a vertex, or the
+   angle will return NULL */
+Angle *Scene::createAngle (Line *a, Line *b) {
     Angle *angle = NULL;
-    if (vertexIsValid (source) && vertexIsValid (a) && vertexIsValid (b)) {
-        angle = new Angle (source, a, b);
+    enum LM elm = validAngle (*a, *b);
+    if (elm > LM_NONE) {
+        angle = new Angle (a, b, elm);
         elements.push_back (angle);
     }
     return angle;
 }
 
-/* a circle is drawn around the specified vertex with a uniform radius *
-Circle *Scene::createCircle (vert v, GLfloat radius) {
-    Circle *circle = NULL;
-    if (vertexIsValid (v)) {
-        circle = new Circle (v, radius);
-        elements.push_back (circle);
-    }
-    return circle;
-}
-
-/* an elipse is fitted around the three verts specified *
-Elipse *Scene::createElipse (vert a, vert b, vert c) {
-    Elipse *elipse = NULL;
-    if (vertexIsValid (a) && vertexIsValid (b) && vertexIsValid (c)) {
-        elipse = new Elipse (a, b, c);
-        elements.push_back (elipse);
-    }
-    return elipse;
-}
-
-/* an elipse is drawn at the midpoints of each line defined by the verts 
-   (like createElipse, but the circle is entirely contained by the triangle
-   specified by the verts, whereas with an elipse the triangle is entirely
-   contained within the circle) *
-Fano *Scene::createFano (vert a, vert b, vert c) {
+/* an ellipse is drawn at the foci calculated from the midpoints of the lines provided. */
+Fano *Scene::createFano (Line *a, Line *b, Line *c) {
     Fano *fano = NULL;
-    if (vertexIsValid (a) && vertexIsValid (b) && vertexIsValid (c)) {
+    if (validAngle (*a,*b) && validAngle (*b,*c) && validAngle (*c,*a)) {
         fano = new Fano (a, b, c);
         elements.push_back (fano);
     }
@@ -136,5 +132,23 @@ void Scene::displayElement (Element *e) {
 
 /* Removes lines, angles, circles, etcetera from the scene */
 void Scene::removeElement (Element *e) {
-    elements->remove (e);
+    elements.remove (e);
 }
+
+/**********************************************************************
+ * FILE PARSING                                                       *
+ **********************************************************************/
+ 
+ /* load the file, parse the text, add the elements */
+bool Scene::loadFile (std::string filename) {
+    std::fstream fs;
+    fs.open (filename);
+    if (!fs.is_open ()) {
+        fs.close ();
+        return false;
+    }
+    
+    //...
+    return true;
+}
+ 

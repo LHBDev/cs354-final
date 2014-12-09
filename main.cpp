@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <list>
+#include <cstdio>
 #include "scene_manager.h"
 #include "GL.h"
 #ifdef _WIN32
@@ -9,9 +10,6 @@
 #else
 #	include <sys/time.h>
 #endif
-
-#pragma warning( disable: 4305 )
-#pragma warning( disable: 4244 )
 
 #define FRAME_RATE 45 //target frame rate
 
@@ -25,9 +23,13 @@ static GLfloat veyey = 5.f;
 static GLfloat veyez = -5.5f;
 static GLfloat vupx = 0.f;
 static GLfloat vupy = 1.f;
-static GLfloat vupz = 0.f;
+//static GLfloat vupz = 0.f;
 
+#ifdef _WIN32
 static GLfloat vmovespeed = 0.05f;      //movement
+#else
+static GLfloat vmovespeed = 0.25f;      //movement
+#endif
 static GLfloat vmovexdelta = 0.f;
 static GLfloat vmoveydelta = 0.f;
 
@@ -47,16 +49,17 @@ static int window_y = 600;
 static bool  bMouseDown = false;
 static float xsource = 0.f; 
 static float ysource = 0.f;
+static GLfloat select_thresh = 0.00001f;
 /* Timing Info *******************************************************************/
-static double time = 0.0;
+static double qtime = 0.0;
 static bool   bInProgress = true;
 #ifdef _WIN32
-static double qmult = 1.0;
+static double qmult = 100.d;
 static DWORD next_redraw;
 static DWORD redraw_interval;
 static DWORD last_idle_time;
 #else
-static double qmult = 1.5;
+static double qmult = 250.d;
 static struct timeval next_redraw;
 static struct timeval redraw_interval;
 static struct timeval last_idle_time;
@@ -94,16 +97,16 @@ static void init() {
        should parse them in from a file with a format that makes
        this process easier.  Then we can make scenes for each
        loaded file, and switch between them on the fly. */
-    vert a = scene->addVertex (4.5, 5.5, -5.0);
-    vert b = scene->addVertex (5.5, 5.5, -5.0);
-    vert c = scene->addVertex (5.5, 4.5, -5.0);
-    vert d = scene->addVertex (4.5, 4.5, -5.0);
-    vert e = scene->addVertex (5.0, 5.0, -4.5);
-    vert f = scene->addVertex (5.0, 5.0, -5.5);
-    scene->createLine (a, b)->setColor (0.1f, 0.8f, 0.1f);
-    scene->createLine (b, c)->setColor (0.1f, 0.8f, 0.1f);
-    scene->createLine (c, d)->setColor (0.1f, 0.8f, 0.1f);
-    scene->createLine (d, a)->setColor (0.1f, 0.8f, 0.1f);
+    vert a = scene->addVertex3f (4.5, 5.5, -5.0);
+    vert b = scene->addVertex3f (5.5, 5.5, -5.0);
+    vert c = scene->addVertex3f (5.5, 4.5, -5.0);
+    vert d = scene->addVertex3f (4.5, 4.5, -5.0);
+    vert e = scene->addVertex3f (5.0, 5.0, -4.5);
+    vert f = scene->addVertex3f (5.0, 5.0, -5.5);
+    scene->createLine (a, b)->setColor3f (0.1f, 0.8f, 0.1f);
+    scene->createLine (b, c)->setColor3f (0.1f, 0.8f, 0.1f);
+    scene->createLine (c, d)->setColor3f (0.1f, 0.8f, 0.1f);
+    scene->createLine (d, a)->setColor3f (0.1f, 0.8f, 0.1f);
     scene->createLine (d, e);
     scene->createLine (a, e);
     scene->createLine (b, e);
@@ -113,7 +116,7 @@ static void init() {
     scene->createLine (b, f);
     scene->createLine (c, f);
     scene->createLine (d, f);
-    
+      
     /* Multi-Platform Timings *******************************/
 
 #ifdef _WIN32
@@ -142,17 +145,18 @@ static void idle (void) {
     dt = (float)(time_now.tv_sec  - last_idle_time.tv_sec) +
     1.0e-6*(time_now.tv_usec - last_idle_time.tv_usec);
 #endif
-    time += 1 * qmult * bInProgress;
+    qtime += 1 * bInProgress;
+    dt *= qmult;
     
 
     /* Update veye position */
     if(vmoveydelta || vmovexdelta){
-        veyex += vmoveydelta * vx * 0.075f;
-        veyez += vmoveydelta * vz * 0.075f;
-        veyey += vmoveydelta * vy * 0.075f;
+        veyex += vmoveydelta * vx * dt;
+        veyez += vmoveydelta * vz * dt;
+        veyey += vmoveydelta * vy * dt;
 
-        veyex += vmovexdelta * vz * 0.05f;
-        veyez += vmovexdelta * -vx * 0.05;
+        veyex += vmovexdelta * vz * 0.5f * dt;
+        veyez += vmovexdelta * -vx * 0.5 * dt;
         updateView();
     }
 
@@ -172,6 +176,7 @@ static void idle (void) {
     }
 }
 
+static double select_expire = 0;
 static void mouse (int button, int state, int x, int y) {
     switch(button){
         case GLUT_LEFT_BUTTON:
@@ -179,7 +184,10 @@ static void mouse (int button, int state, int x, int y) {
                 xsource = x;
                 ysource = y;
                 bMouseDown = true;
+                select_expire = qtime + 500;
             } else {
+                if (scene && select_expire >= qtime && vanglexdelta < select_thresh && vangleydelta < select_thresh)
+                  active_vertex = scene->selectVertex (x, y);
                 vanglex += vanglexdelta;
                 vanglexdelta = 0;
                 vangley += vangleydelta;
@@ -220,9 +228,6 @@ static void motion (int x, int y) {
 }
 
 static void keyboard (unsigned char key, int x, int y) {
-    Vertex *vertex = NULL;
-    if (scene)
-        vertex = scene->getVertex (active_vertex);
 
     switch(key){
         case 'w':
@@ -241,25 +246,25 @@ static void keyboard (unsigned char key, int x, int y) {
         case 'D':
             vmovexdelta = -vmovespeed;
             break;
-        if (vertex) {
+        if (active_vertex) {
             case 'j':
-                vertex->x -= 0.05;
+                active_vertex->x -= 0.05;
                 break;
             case 'l':
-                vertex->x += 0.05;
+                active_vertex->x += 0.05;
                 break;
             case 'i':
-                vertex->y += 0.05;
+                active_vertex->y += 0.05;
                 break;
             case 'k':
-                vertex->y -= 0.05;
+                active_vertex->y -= 0.05;
                 break;
         }
         default:
             /* if it's a number key, set the active vertex to
                that number */
-            if (key >= '0' && key <= '9')
-                active_vertex = key - '0';
+            if (scene && key >= '0' && key <= '9')
+                active_vertex = scene->vertexes[key - '0'];
             break;
     };
 }
@@ -319,7 +324,7 @@ int main(int argc, char **argv) {
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-	glutMouseFunc(mouse);
+    glutMouseFunc(mouse);
     glutMotionFunc(motion);
     glutIdleFunc(idle);
     glutSpecialFunc(special);
