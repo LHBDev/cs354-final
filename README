@@ -6,72 +6,23 @@ EID2: ksg634
 
 http://www.maa.org/external_archive/joma/Volume8/Kalman/MaxEllipse.html
 
-Didn't get around to finishing moving vertices. have clicking working but didn't push
-because cOde wasn'tworking since i triedto do moving.
+UPDATED 12/10/14 8:13 AM:
+-Added file parsing
+--Supports coloring of lines with format C <line number> r g b
+-changed vertex class so that we can reset number, that was before adding additional scenes so no longer necessary but doesn't change functionality
+- changed scenemanager so that its easier to keep track of newly added verts and lines when reading in
+-files are specified on command line as arguments 
+-- EX: ./final test.txt test2.txt diamond.txt
+--this loads all those scenes
+--can switch between scenes using right click
+---all loaded scenes will be auto-populated to menu
+-couldn't do object dragging because of the way elements are set up
+--might work if we do a ray trace, but selection buffer didn't work
 
-scene_manager.cpp has an empty loadFile function you should write.  i'll get all the
-math done tonight if i can.  running kind of low on time.
+take a look at diamond.txt to see how colors are set if you want.
 
-once that's done, just focus on getting a right-click menu in there that we can select
-parsed files from.  as long as we can pop up a bunch of models and move verts and
-spin angles and shit we'll be fine.
-
-look back through scene_manager.h, GLM integration changed a lot of things.
-
-sample file format (or whatever is easiest to do):
-i'm thinking that doing something like a .obj file will be easiest here.
-first, define the group of verts
-second, define the group of lines
-third, define the group of angles
-finally, define the group of fanos
-
-each type of element depends on the previous, so identifying previous
-iterations is probably the hardest part.
-
-So I was thinking something like this:
-
-[Vertexes]
-#V0 a b c
-#V1 a b c
-#V2 a b c
-
-[Lines]
-#L0 0 1
-#L1 0 2
-#L2 1 2
-
-[Angles]
-#A0 0 1
-#A1 0 2
-#A2 1 3
-
-[Fano]
-#F0 0 1 2
-
-
-So a real example might be:
-V0 5.5 5.0 4.5
-V1 4.5 5.0 5.5
-V2 5.0 4.0 5.0
-L0 0 1
-L1 0 2
-L2 1 2
-A0 0 1
-A1 0 2
-A2 1 3
-F0 0 1 2
-
-
-So the parser would begin reading lines, and for each vertex (starting with V, with GLfloat data),
-then read in the Lines with a number corresponding to the above verts that are its components,
-then read in angles - with its data being two enumerated lines,
-then read in fanos, which have 3 angles for components.
-
-you'll have to keep track of what order you read in and create the objects for lines, angles, and
-fanos.  but i included a very easy way to look up verts by the order they came in (scene->vertexes[i]
-is an array of references to everything added with addVertex or addVertex3f/4f in the order they
-were added.  it should help speed up the process somewhat.
-
+I'm gonna try to be up at noon. Shoot me a text then if you want to meet before class.
+If you want to meet earlier feel free to call me. Might have to call a couple times to wake me up though.
 
 MAKEFILE updates:
 it's now multiplatform, and has new rules:
