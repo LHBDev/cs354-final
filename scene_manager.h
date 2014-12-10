@@ -25,9 +25,9 @@ private:
     
 public:
     Vertex *vertexes[MAX_VERTS]; /* lookup verts by their ID (order they were added) */
-    int count = 0;
+    int count;
     /* ctor/dtor */
-    Scene  () {}
+    Scene  () : count(0) {}
     Scene  (std::string filename) { loadFile(filename); }
     ~Scene () {}
 

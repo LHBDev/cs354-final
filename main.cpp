@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <list>
 #include <cstdio>
+#include <cstring>
 #include <string>
 #include <vector>
 #include "scene_manager.h"
@@ -110,14 +111,18 @@ static void init() {
     vert d = scene->addVertex3f (4.5, 4.5, -5.0);
     vert e = scene->addVertex3f (5.0, 5.0, -4.5);
     vert f = scene->addVertex3f (5.0, 5.0, -5.5);
-    (scene->createLine (a, b))->setColor3f (0.1f, 0.8f, 0.1f);
+    scene->createLine (a, b)->setColor3f (0.1f, 0.8f, 0.1f);
     scene->createLine (b, c)->setColor3f (0.1f, 0.8f, 0.1f);
     scene->createLine (c, d)->setColor3f (0.1f, 0.8f, 0.1f);
     scene->createLine (d, a)->setColor3f (0.1f, 0.8f, 0.1f);
-    scene->createLine (d, e);
-    scene->createLine (a, e);
-    scene->createLine (b, e);
-    scene->createLine (c, e);
+    scene->createAngle (
+      scene->createLine (d, e),
+      scene->createLine (a, e)
+    );
+    scene->createAngle (
+      scene->createLine (b, e),
+      scene->createLine (c, e)
+    );
     scene->createLine (d, e);
     scene->createLine (a, f);
     scene->createLine (b, f);
@@ -410,7 +415,9 @@ int main(int argc, char **argv) {
     glutInitWindowPosition(50, 50);
     glutCreateWindow("Final Project");
     init();
-    names.push_back("Default");
+    char *s = new char[8];
+    strcpy (s, "Default");
+    names.push_back(s);
 
     loadFiles(argc, argv);
 

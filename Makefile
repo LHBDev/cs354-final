@@ -33,7 +33,7 @@ debug: $(OBJ) main.o
 	$(CC) -g $^ $(INCLUDES) -o $(EXE)
 
 run: makeall
-	$(EXE)
+	$(EXE) diamond.txt test.txt
 
 clean:
 	rm -rf *.o $(EXE)

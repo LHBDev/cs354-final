@@ -4,29 +4,14 @@ EID1:	rb27735
 Name2: Ken Grimes
 EID2: ksg634
 
-http://www.maa.org/external_archive/joma/Volume8/Kalman/MaxEllipse.html
+BUILD:
+To build and execute, use the provided makefile with the "run" rule:
+$make run
 
-UPDATED 12/10/14 8:13 AM:
--Added file parsing
---Supports coloring of lines with format C <line number> r g b
--changed vertex class so that we can reset number, that was before adding additional scenes so no longer necessary but doesn't change functionality
-- changed scenemanager so that its easier to keep track of newly added verts and lines when reading in
--files are specified on command line as arguments 
--- EX: ./final test.txt test2.txt diamond.txt
---this loads all those scenes
---can switch between scenes using right click
----all loaded scenes will be auto-populated to menu
--couldn't do object dragging because of the way elements are set up
---might work if we do a ray trace, but selection buffer didn't work
+The makefile, like the software, is multi-platform between Linux and
+windows (using Min-GW)
 
-take a look at diamond.txt to see how colors are set if you want.
-
-I'm gonna try to be up at noon. Shoot me a text then if you want to meet before class.
-If you want to meet earlier feel free to call me. Might have to call a couple times to wake me up though.
-
-MAKEFILE updates:
-it's now multiplatform, and has new rules:
-
+MAKEFILE rules:
 make
 -just makes everything with -Wall
 
@@ -38,3 +23,20 @@ make run
 
 make clean
 -cleans up shit
+
+USAGE:
+execute with:
+$make run
+or
+$final diamond.txt test.txt
+
+The executable will load in data from the text files provided to be
+displayed in the scene.
+
+Move around with WASD
+Left click and drag to rotate the view
+Mouse wheel to zoom in/out
+1-0 selects a vert to move
+IJKL moves a vert around
+
+Right-click menu selects active scene.
