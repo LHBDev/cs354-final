@@ -19,6 +19,7 @@ public :
     /* ctor/dtor */
     Vertex (glm::vec4 inVector);
     Vertex (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+    Vertex (GLfloat x, GLfloat y, GLfloat z, GLfloat w, int r);
     virtual ~Vertex () { };
     
     bool operator== (const Vertex &b) const;
@@ -28,6 +29,7 @@ public :
     
     /* init */
     virtual void init (void);
+
 };
 
 #endif

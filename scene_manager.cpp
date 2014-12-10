@@ -2,6 +2,12 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <string.h>
+#include <sstream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+
 
 static void display_element (Element *e) { e->draw(); }
 
@@ -10,25 +16,35 @@ void Scene::display () {
     std::for_each (elements.begin(), elements.end(), display_element);
 }
 
+void Scene::clearScene(){
+  elements.clear();
+  verts.clear();
+}
+
 /**********************************************************
  * Vertex Functions                                       *
  **********************************************************/
 
 /* Adds a new vertex to the scene, returns a pointer to that vertex */
-Vertex *Scene::addVertex3f (GLfloat x, GLfloat y, GLfloat z) {
-    Vertex *vertex = new Vertex(x,y,z,0.f);
+Vertex *Scene::addVertex3f (GLfloat x, GLfloat y, GLfloat z, int r ) {
+    Vertex *vertex;
+    if(r == 1)
+      vertex = new Vertex(x, y, z, 0.f, 1);
+    else
+      vertex = new Vertex(x,y,z,0.f);
     
     if (vertex) {
       elements.push_back (vertex);
       verts.push_back (vertex);
       vertexes[vertex->id] = vertex;
     }
-
+    count++;
     return vertex;
 }
 
+
 Vertex *Scene::addVertex (glm::vec4 vector) {
-    return addVertex3f (vector.x, vector.y, vector.z);
+    return addVertex3f (vector.x, vector.y, vector.z, 0);
 }
 
 /* Gets the Vertex object associated with vert v and returns a pointer to it,
@@ -141,13 +157,104 @@ void Scene::removeElement (Element *e) {
  
  /* load the file, parse the text, add the elements */
 bool Scene::loadFile (std::string filename) {
-    std::fstream fs;
+    std::ifstream fs;
     fs.open (filename);
     if (!fs.is_open ()) {
         fs.close ();
         return false;
     }
-    
+
+    clearScene();
+
+    int vertNum = 0;
+    int lineNum = 0;
+    int angleNum = 0;
+    int fanoNum = 0;
+
+    Vertex * newVerts[1024];
+    Line * newLines[1024];
+
+    int vertIdx = 0;
+    int lineIdx = 0;
+
+    std::cout<< "Reading in file " << filename << std::endl;
+    std::string line;
+    while(std::getline(fs, line)){
+
+      //line that includes data
+      if(line.length() > 0 && (line.at(0) == 'V' || line.at(0) == 'v')){
+        char *copyLine = (char*)line.c_str();
+        char *token;
+        token = strtok(copyLine, " ,");
+        token = strtok(NULL, " ,");
+        float x, y, z;
+        x = atof(token);
+        token = strtok(NULL, " ,");
+        y = atof(token);
+        token = strtok(NULL, " ,");
+        z = atof(token);
+
+        if(vertIdx == 0)
+          newVerts[vertIdx++] = addVertex3f(x, y, z, 1);
+        else
+          newVerts[vertIdx++] = addVertex3f(x, y, z, 0);
+      }
+      else if(line.length() > 0 && (line.at(0) == 'L' || line.at(0) == 'l')){
+        char *copyLine = (char*)line.c_str();
+        char *token;
+        token = strtok(copyLine, " ,");
+        token = strtok(NULL, " ,");
+        int v1, v2;
+        v1 = atoi(token);
+        token = strtok(NULL, " ,");
+        v2 = atoi(token);
+
+        newLines[lineIdx++] = createLine(newVerts[v1], newVerts[v2]);
+      }
+      else if(line.length() > 0 && (line.at(0) == 'A' || line.at(0) == 'a')){
+        char *copyLine = (char*)line.c_str();
+        char *token;
+        token = strtok(copyLine, " ,");
+        token = strtok(NULL, " ,");
+        int l1, l2;
+        l1 = atoi(token);
+        token = strtok(NULL, " ,");
+        l2 = atoi(token);
+        createAngle(newLines[l1], newLines[l2]);
+      }
+      else if(line.length() > 0 && (line.at(0) == 'F' || line.at(0) == 'f')){
+        char *copyLine = (char*)line.c_str();
+        char *token;
+        token = strtok(copyLine, " ,");
+        token = strtok(NULL, " ,");
+        int a1, a2, a3;
+        a1 = atoi(token);
+        token = strtok(NULL, " ,");
+        a2 = atoi(token);
+        token = strtok(NULL, " ,");
+        a3 = atoi(token);
+        createFano(newLines[a1], newLines[a2], newLines[a3]);
+      }
+      else if(line.length()>0 && (line.at(0)=='C' || line.at(0)=='c')){
+        char *copyLine = (char*)line.c_str();
+        char *token;
+        token = strtok(copyLine, " ,");
+        token = strtok(NULL, " ,");
+        int l;
+        float r, g, b;
+        l = atoi(token);
+        token = strtok(NULL, " ,");
+        r = atof(token);
+        token = strtok(NULL, " ,");
+        g = atof(token);
+        token = strtok(NULL, " ,");
+        b = atof(token);
+        Line *a = newLines[l];
+        a->setColor3f(r,g,b);
+      }
+      
+    }
+
     //...
     return true;
 }

@@ -25,7 +25,7 @@ private:
     
 public:
     Vertex *vertexes[MAX_VERTS]; /* lookup verts by their ID (order they were added) */
-
+    int count = 0;
     /* ctor/dtor */
     Scene  () {}
     Scene  (std::string filename) { loadFile(filename); }
@@ -40,7 +40,7 @@ public:
     /* Vertexes are added one at a time.  addVertex returns the ID of the vertex
        created, which is sequential (0, 1, 2, 3, etc).  Vertex IDs may be used to
        create lines, circles, elipses and fano planes */
-    Vertex        *addVertex3f   (GLfloat x, GLfloat y, GLfloat z);
+    Vertex        *addVertex3f   (GLfloat x, GLfloat y, GLfloat z, int r=0);
     Vertex        *addVertex     (glm::vec4 vector);
     Vertex        *selectVertex  (int x, int y);
     list<Vertex*> &getVertexList (void);
@@ -57,6 +57,9 @@ public:
 
     /* Removes lines, angles, circles, etcetera from the scene */
     void removeElement  (Element *e);
+
+    /*Clears the scene */
+    void clearScene ();
 };
 
 #endif

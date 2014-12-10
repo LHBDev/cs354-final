@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-c -Wall
-OBJ=Element.o Vertex.o Line.o Angle.o Fano.o scene_manager.o
+CFLAGS=-c 
+OBJ=Element.o Vertex.o Line.o Angle.o Fano.o scene_manager.o 
 EXE_NAME=final
 
 # IF
