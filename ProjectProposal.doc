@@ -1,9 +1,31 @@
 
 Elements Visualizer
 Summary:
-Inspired by Mr. Montoya’s 3D graphing app, we have decided to make a small application to visualize some of the propositions in Euclid’s Elements which are directly applicable to modern computer graphics.  Removing the limitations of pen and paper gives us a great opportunity for expanding the accessibility of the techniques used by geometers of antiquity, and show the cooperative relationship of the elements Euclid uses in his proofs.  In particular, we want to provide users with the ability to manipulate Euclid’s geometric proofs in real time to help illustrate the identities and properties of the elements as the user changes angles, vertex locations, and magnitudes.  Our hope is that expanding proofs to an interactive 3D environment will elucidate some of the more complex propositions, and illustrate some of their general applications.
+Inspired by Mr. Montoya’s 3D graphing app, we have decided to make a small application to visualize some of the 
+propositions in Euclid’s Elements which are directly applicable to modern computer graphics.  Removing the limitations
+of pen and paper gives us a great opportunity for expanding the accessibility of the techniques used by geometers of 
+antiquity, and show the cooperative relationship of the elements Euclid uses in his proofs.  In particular, we want to 
+provide users with the ability to manipulate Euclid’s geometric proofs in real time to help illustrate the identities 
+and properties of the elements as the user changes angles, vertex locations, and magnitudes.  Our hope is that expanding 
+proofs to an interactive 3D environment will elucidate some of the more complex propositions, and illustrate some of their 
+general applications.
+
 Objectives:
-We’d like to develop a lightweight (low-time-investment) framework for giving a user the ability to manipulate lines, vertexes, angle relationships and intersections between various Euclidian elements in a 3D environment.  To do this, our system will organize the elements of Euclid’s propositions into sets of connected vertices and their relationships to other elements.  Then, calculate and display the corresponding translations caused by user input on a single vertex or angle.
-Users will also be given the ability to rotate the mathematical figure, view it from multiple angles, and even set their view inside the figure and manipulate their orthogonal projection plane to visualize the effects of projective geometry in the simulation.
-We will use a template system to load the identity of a proof figure, allowing users to select the template of their choosing from a pre-set list of proofs (likely limited to 1-3 proofs in our submission).  Once loaded, the figure will have key vertexes, lines, and angles colored in correspondence with numeral input boxes.  Upon receiving a new input, the application will redraw the proof figure with the new data.  One of our “stretch” goals for this project will be to interpolate this transition for a smooth animation.  Not just because it’s pretty, but because often, and perhaps exclusively, the arrangement of drawn lines that triggers a flash of insight is found at some arbitrary point in the region between our expectations.
-By manipulating and reconstructing the proof techniques visually, it is our hope that users will be able to understand exactly why these proofs work, and precisely how the algebras and basic mathematical laws so elegantly fall into place.  We hope that such a framework will also be able to be used to reconstruct an entirely different proof from a template base, and allow users to explore the possibilities of new proofs, or reach new interpretations.  We want to give users a tool to aid in the discovery of fundamental mathematics at a personal level.
+We’d like to develop a lightweight (low-time-investment) framework for giving a user the ability to manipulate lines, 
+vertexes, angle relationships and intersections between various Euclidian elements in a 3D environment.  To do this, our system 
+will organize the elements of Euclid’s propositions into sets of connected vertices and their relationships to other elements.  
+Then, calculate and display the corresponding translations caused by user input on a single vertex or angle.
+Users will also be given the ability to rotate the mathematical figure, view it from multiple angles, and even set their view 
+inside the figure and manipulate their orthogonal projection plane to visualize the effects of projective geometry in the 
+simulation.
+We will use a template system to load the identity of a proof figure, allowing users to select the template of their choosing 
+from a pre-set list of proofs (likely limited to 1-3 proofs in our submission).  Once loaded, the figure will have key vertexes, 
+lines, and angles colored in correspondence with numeral input boxes.  Upon receiving a new input, the application will redraw 
+the proof figure with the new data.  One of our “stretch” goals for this project will be to interpolate this transition for a 
+smooth animation.  Not just because it’s pretty, but because often, and perhaps exclusively, the arrangement of drawn lines 
+that triggers a flash of insight is found at some arbitrary point in the region between our expectations.
+By manipulating and reconstructing the proof techniques visually, it is our hope that users will be able to understand exactly
+why these proofs work, and precisely how the algebras and basic mathematical laws so elegantly fall into place.  We hope that 
+such a framework will also be able to be used to reconstruct an entirely different proof from a template base, and allow users 
+to explore the possibilities of new proofs, or reach new interpretations.  We want to give users a tool to aid in the discovery
+of fundamental mathematics at a personal level.
